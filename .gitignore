@@ -1,0 +1,11 @@
+# Exclude build artifacts and binaries
+build/*
+*.exe
+*.o
+*.a
+
+# Exclude local save and temporary files
+data/*.txt
+
+# Exclude editor-specific files
+.vscode/
