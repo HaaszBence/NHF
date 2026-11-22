@@ -18,7 +18,7 @@ Last Updated: 2026-11-19
 
 // Constants and Macros
 // -------------------------------------------------
-#define SAVE_FILE_PATH "../savegame.dat" // Path to the binary save file
+#define SAVE_FILE_PATH "../../data/savegame.dat" // Path to the binary save file
 
 // Function Declarations
 // -------------------------------------------------
@@ -32,7 +32,7 @@ bool save_game(const GameState *state);
 // Loads saved progress into GameState from SAVE_FILE_PATH; returns true on success.
 bool save_load(GameState *state);
 
-// Deletes the existing save file from disk (e.g., on progress reset).
+// Deletes the existing save file from disk.
 bool save_delete(void);
 
 #endif // SAVE_H

@@ -28,7 +28,7 @@ typedef enum {
 // Function Declarations
 // -------------------------------------------------
 
-// Transform Modifiers (Pure State Modification)
+// Transform Modifiers
 // -------------------------------------------------
 
 // Applies continuous linear movement along the given direction, optionally looping seamlessly.
@@ -43,7 +43,7 @@ void anim_pulse(SpriteView *v, float amount, float freq);
 // Modulates the view's alpha transparency (0.0f = transparent, 1.0f = opaque).
 void anim_fade(SpriteView *v, float alpha);
 
-// Frame-Based Texture Modifiers (Pure State Modification)
+// Frame-Based Texture Modifiers
 // -------------------------------------------------
 
 // Continuously cycles through an array of separate textures at the given frames per second (FPS).

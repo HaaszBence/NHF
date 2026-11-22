@@ -6,10 +6,14 @@ Last Updated: 2026-11-19
 */
 
 // Includes
-// -------------------------------------------------
+// --------------------------------------------------------------------------------------------------
 #include "presentation/ui.h"
+#include "core/assets.h" // Needed for assets_font() and FONT_* enum values
 
-// Helper Functions
+// Functions
+// --------------------------------------------------------------------------------------------------
+
+// Helpers
 // -------------------------------------------------
 static float clamp01(float v) {
     if (v < 0.0f) return 0.0f;
@@ -17,17 +21,21 @@ static float clamp01(float v) {
     return v;
 }
 
-static void draw_centered_text(Rectangle bounds, const char *text, int font_size, Color color) {
+// Draws text centered both horizontally and vertically inside a given Rectangle
+static void draw_text_in_rect(Rectangle bounds, Font font, const char *text, float font_size, float spacing, Color color) {
     if (!text) return;
 
-    int text_w = MeasureText(text, font_size);
-    int text_x = (int)(bounds.x + (bounds.width - (float)text_w) * 0.5f);
-    int text_y = (int)(bounds.y + (bounds.height - (float)font_size) * 0.5f);
-    DrawText(text, text_x, text_y, font_size, color);
+    Vector2 dim = MeasureTextEx(font, text, font_size, spacing);
+    Vector2 pos = {
+        bounds.x + (bounds.width - dim.x) * 0.5f,
+        bounds.y + (bounds.height - dim.y) * 0.5f
+    };
+    DrawTextEx(font, text, pos, font_size, spacing, color);
 }
 
 // Public Functions
 // -------------------------------------------------
+
 bool ui_button_update(Button *btn, const InputState *input) {
     if (!btn || !input || !btn->enabled) {
         if (btn) {
@@ -46,7 +54,7 @@ void ui_button_draw(const Button *btn) {
     if (!btn) return;
 
     switch (btn->type) {
-        case BTN_TYPE_WOOD: {
+        case BTN_TYPE_ROUNDED: {
             Color tint = !btn->enabled ? GRAY : (btn->hovered ? (Color){ 255, 255, 210, 255 } : WHITE);
             if (btn->tex.id != 0) {
                 Rectangle src = { 0.0f, 0.0f, (float)btn->tex.width, (float)btn->tex.height };
@@ -54,33 +62,15 @@ void ui_button_draw(const Button *btn) {
             } else {
                 DrawRectangleRec(btn->bounds, !btn->enabled ? DARKGRAY : BROWN);
             }
-            draw_centered_text(btn->bounds, btn->text, 20, !btn->enabled ? LIGHTGRAY : WHITE);
+            draw_text_in_rect(btn->bounds, assets_font(FONT_REGULAR), btn->text, 20.0f, 2.0f, WHITE);
             break;
         }
-
-        case BTN_TYPE_ICON: {
-            float scale = (btn->enabled && btn->hovered) ? 1.08f : 1.0f;
-            Color tint = !btn->enabled ? DARKGRAY : WHITE;
-            if (btn->tex.id != 0) {
-                Rectangle src = { 0.0f, 0.0f, (float)btn->tex.width, (float)btn->tex.height };
-                float w = btn->bounds.width * scale;
-                float h = btn->bounds.height * scale;
-                Rectangle dst = {
-                    btn->bounds.x - (w - btn->bounds.width) * 0.5f,
-                    btn->bounds.y - (h - btn->bounds.height) * 0.5f,
-                    w, h
-                };
-                DrawTexturePro(btn->tex, src, dst, (Vector2){ 0.0f, 0.0f }, 0.0f, tint);
-            }
-            break;
-        }
-
         case BTN_TYPE_DEFAULT:
         default: {
             Color bg = !btn->enabled ? DARKGRAY : (btn->hovered ? SKYBLUE : BLUE);
             DrawRectangleRec(btn->bounds, bg);
             DrawRectangleLinesEx(btn->bounds, 2.0f, WHITE);
-            draw_centered_text(btn->bounds, btn->text, 20, WHITE);
+            draw_text_in_rect(btn->bounds, assets_font(FONT_REGULAR), btn->text, 20.0f, 2.0f, WHITE);
             break;
         }
     }
@@ -115,11 +105,12 @@ void ui_slider_draw(const Slider *slider) {
     float knob_x = slider->bounds.x + slider->bounds.width * val;
 
     if (slider->label) {
-        DrawText(slider->label, (int)slider->bounds.x, (int)slider->bounds.y - 24, 18, WHITE);
+        Vector2 label_pos = { slider->bounds.x, slider->bounds.y - 24.0f };
+        DrawTextEx(assets_font(FONT_REGULAR), slider->label, label_pos, 18.0f, 2.0f, WHITE);
     }
 
     switch (slider->type) {
-        case SLIDER_TYPE_WOOD: {
+        case SLIDER_TYPE_ROUNDED: {
             if (slider->tex.id != 0) {
                 Rectangle src = { 0.0f, 0.0f, (float)slider->tex.width, (float)slider->tex.height };
                 DrawTexturePro(slider->tex, src, slider->bounds, (Vector2){ 0.0f, 0.0f }, 0.0f, WHITE);
@@ -145,15 +136,11 @@ void ui_slider_draw(const Slider *slider) {
 }
 
 void ui_panel_draw(Rectangle bounds, PanelType type, Texture2D tex, Color bg_color, Color border_color) {
+    (void)tex; // Currently unused; reserved for future texture-based panel rendering
     switch (type) {
-        case PANEL_TYPE_WOOD: {
-            if (tex.id != 0) {
-                Rectangle src = { 0.0f, 0.0f, (float)tex.width, (float)tex.height };
-                DrawTexturePro(tex, src, bounds, (Vector2){ 0.0f, 0.0f }, 0.0f, WHITE);
-            } else {
-                DrawRectangleRec(bounds, DARKBROWN);
-                DrawRectangleLinesEx(bounds, 3.0f, BEIGE);
-            }
+        case PANEL_TYPE_ROUNDED: {
+            DrawRectangleRounded(bounds, 0.5f, 8, bg_color);
+            DrawRectangleRoundedLinesEx(bounds, 0.5f, 8, 2.0f, border_color);
             break;
         }
 
@@ -188,4 +175,12 @@ void ui_progress_bar_draw(Rectangle bounds, ProgressBarType type, float progress
             break;
         }
     }
+}
+
+void ui_draw_text_centered(Font font, const char *text, float y, float font_size, float spacing, Color color, int screen_w) {
+    if (!text) return;
+
+    Vector2 dim = MeasureTextEx(font, text, font_size, spacing);
+    Vector2 pos = { ((float)screen_w - dim.x) * 0.5f, y };
+    DrawTextEx(font, text, pos, font_size, spacing, color);
 }

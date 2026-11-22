@@ -2,7 +2,7 @@
 assets.c
 
 Purpose: Implementation of centralized asset management.
-Last Updated: 2026-11-19
+Last Updated: 2026-11-22
 */
 
 // Includes
@@ -14,20 +14,22 @@ Last Updated: 2026-11-19
 // Asset Path Tables
 // -------------------------------------------------
 static const char *texture_paths[TEX_COUNT] = {
-    [TEX_BG_SKY]    = ASSETS_PATH "images/bg/sky.png",
-    [TEX_BG_CLOUDS] = ASSETS_PATH "images/bg/clouds.png",
-    [TEX_BG_TREES]  = ASSETS_PATH "images/bg/trees.png",
-    [TEX_MAIN_TREE] = ASSETS_PATH "images/tree.png"
+    [TEX_BG_SKY] = ASSETS_PATH "images/bg/layers/sky.png",
+    [TEX_BG_CLOUDS_CLOSE] = ASSETS_PATH "images/bg/layers/clouds_close.png",
+    [TEX_BG_CLOUDS_FAR] = ASSETS_PATH "images/bg/layers/clouds_far.png",
+    [TEX_BG_ROCKS] = ASSETS_PATH "images/bg/layers/rocks.png",
+    [TEX_BG_GROUND] = ASSETS_PATH "images/bg/layers/ground.png"
 };
 
 static const char *font_paths[FONT_COUNT] = {
-    [FONT_MAIN]  = ASSETS_PATH "fonts/main.ttf",
-    [FONT_TITLE] = ASSETS_PATH "fonts/title.ttf"
+    [FONT_REGULAR] = ASSETS_PATH "fonts/pixel.ttf",
+    [FONT_BOLD] = ASSETS_PATH "fonts/pixel_bold.ttf"
 };
 
 static const char *sfx_paths[SFX_COUNT] = {
-    [SFX_CLICK]   = ASSETS_PATH "sounds/sfx/click.wav",
-    [SFX_UPGRADE] = ASSETS_PATH "sounds/sfx/upgrade.wav"
+    [SFX_NATURE] = ASSETS_PATH "sounds/sfx/nature.mp3",
+    [SFX_CLICK] = ASSETS_PATH "sounds/sfx/click.wav", // Not included yet
+    [SFX_UPGRADE] = ASSETS_PATH "sounds/sfx/upgrade.wav" // Not included yet
 };
 
 static const char *music_dirs[MUSIC_CAT_COUNT] = {
@@ -38,11 +40,11 @@ static const char *music_dirs[MUSIC_CAT_COUNT] = {
 // Internal Storage
 // -------------------------------------------------
 static Texture2D textures[TEX_COUNT];
-static Font      fonts[FONT_COUNT];
-static Sound     sfx[SFX_COUNT];
+static Font fonts[FONT_COUNT];
+static Sound sfx[SFX_COUNT];
 
-static Music    *music_tracks[MUSIC_CAT_COUNT];
-static int       music_counts[MUSIC_CAT_COUNT];
+static Music *music_tracks[MUSIC_CAT_COUNT];
+static int music_counts[MUSIC_CAT_COUNT];
 
 // Public Functions
 // -------------------------------------------------
@@ -59,7 +61,8 @@ bool assets_load(void) {
 
     for (int i = 0; i < SFX_COUNT; i++) {
         sfx[i] = LoadSound(sfx_paths[i]);
-        if (sfx[i].frameCount == 0) return false;
+        // Only require SFX_NATURE strictly until click.wav and upgrade.wav are added
+        if (i == SFX_NATURE && sfx[i].frameCount == 0) return false;
     }
 
     for (int c = 0; c < MUSIC_CAT_COUNT; c++) {
@@ -79,7 +82,9 @@ bool assets_load(void) {
 void assets_unload(void) {
     for (int i = 0; i < TEX_COUNT; i++) UnloadTexture(textures[i]);
     for (int i = 0; i < FONT_COUNT; i++) UnloadFont(fonts[i]);
-    for (int i = 0; i < SFX_COUNT; i++) UnloadSound(sfx[i]);
+    for (int i = 0; i < SFX_COUNT; i++) {
+        if (sfx[i].frameCount > 0) UnloadSound(sfx[i]);
+    }
 
     for (int c = 0; c < MUSIC_CAT_COUNT; c++) {
         for (int i = 0; i < music_counts[c]; i++) {

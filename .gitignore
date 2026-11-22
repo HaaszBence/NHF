@@ -9,3 +9,6 @@ data/*.txt
 
 # Exclude editor-specific files
 .vscode/
+
+# Exclude assets that are generated or downloaded
+assets/down

@@ -19,11 +19,11 @@ Last Updated: 2026-11-19
 // Structure definitions
 // -------------------------------------------------
 typedef struct {
-    Vector2 cursor_pos;     // Current screen position of the cursor
-    bool primary_click;     // True on the frame the primary button is pressed
-    bool primary_held;      // True while the primary button is held down
-    bool secondary_click;   // True on the frame the secondary button is pressed
-    bool pause_toggle;      // True on the frame the pause key (ESC) is pressed
+    Vector2 cursor_pos; // Current screen position of the cursor
+    bool primary_click; // True on the frame the primary button is pressed
+    bool primary_held; // True while the primary button is held down
+    bool secondary_click; // True on the frame the secondary button is pressed
+    bool pause_toggle; // True on the frame the pause key (ESC) is pressed
 } InputState;
 
 // Function Declarations

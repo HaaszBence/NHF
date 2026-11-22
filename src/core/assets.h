@@ -20,19 +20,21 @@ Last Updated: 2026-11-19
 // -------------------------------------------------
 typedef enum {
     TEX_BG_SKY,
-    TEX_BG_CLOUDS,
-    TEX_BG_TREES,
-    TEX_MAIN_TREE,
+    TEX_BG_CLOUDS_CLOSE,
+    TEX_BG_CLOUDS_FAR,
+    TEX_BG_ROCKS,
+    TEX_BG_GROUND,
     TEX_COUNT
 } TextureId;
 
 typedef enum {
-    FONT_MAIN,
-    FONT_TITLE,
+    FONT_REGULAR,
+    FONT_BOLD,
     FONT_COUNT
 } FontId;
 
 typedef enum {
+    SFX_NATURE,
     SFX_CLICK,
     SFX_UPGRADE,
     SFX_COUNT
@@ -56,10 +58,10 @@ void assets_unload(void);
 // Resource Getters
 // -------------------------------------------------
 Texture2D assets_tex(TextureId id);
-Font      assets_font(FontId id);
-Sound     assets_sfx(SfxId id);
+Font assets_font(FontId id);
+Sound assets_sfx(SfxId id);
 
 // Returns a pointer to the loaded Music array for a category and writes its length to out_count.
-Music    *assets_music_list(MusicCategory cat, int *out_count);
+Music *assets_music_list(MusicCategory cat, int *out_count);
 
 #endif // ASSETS_H
