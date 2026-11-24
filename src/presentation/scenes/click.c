@@ -1,6 +1,7 @@
-#include "presentation/scenes/click.h" // Own header with declarations
+#include "presentation/scenes/click.h"
 #include "presentation/render.h" // Needed for SpriteView and sprite_view_draw
 #include "presentation/ui.h" // Needed for Button, ui_button_update/draw, ui_panel_draw, ui_progress_bar_draw
+#include "presentation/anim.h" // Needed for anim_drift
 #include "core/assets.h" // Needed for assets_tex() and TextureId enum values
 #include "raylib.h" // Needed for DrawCircle, DrawText, TextFormat, and colors
 
@@ -28,8 +29,8 @@ void click_init(const Config *cfg) {
     TextureId layer_ids[CLICK_BG_LAYER_COUNT] = {
         TEX_BG_SKY,
         TEX_BG_CLOUDS_FAR,
-        TEX_BG_CLOUDS_CLOSE,
         TEX_BG_ROCKS,
+        TEX_BG_CLOUDS_CLOSE,
         TEX_BG_GROUND
     };
 
@@ -37,6 +38,8 @@ void click_init(const Config *cfg) {
     for (int i = 0; i < CLICK_BG_LAYER_COUNT; i++) {
         bg_layers[i] = sprite_view_create(assets_tex(layer_ids[i]), full_screen);
     }
+    bg_layers[1].wrap_x = true; // TEX_BG_CLOUDS_FAR
+    bg_layers[3].wrap_x = true; // TEX_BG_CLOUDS_CLOSE
 
     // Position top-right navigation buttons inside the HUD bar
     float btn_w = 175.0f;
@@ -106,6 +109,13 @@ SceneID click_update(GameState *state, const InputState *input, float dt) {
 }
 
 void click_draw(const GameState *state) {
+
+    // Update parallax cloud offsets for this frame
+    bg_layers[1].offset = (Vector2){ 0.0f, 0.0f };
+    bg_layers[3].offset = (Vector2){ 0.0f, 0.0f };
+    anim_drift(&bg_layers[1], 12.0f, DRIFT_LEFT, true); // Slow distant clouds
+    anim_drift(&bg_layers[3], 28.0f, DRIFT_LEFT, true); // Faster foreground clouds
+
     // Render background layers back-to-front
     for (int i = 0; i < CLICK_BG_LAYER_COUNT; i++) {
         if (bg_layers[i].tex.id != 0) {
@@ -114,14 +124,34 @@ void click_draw(const GameState *state) {
     }
 
     // Draw all active clickable targets and their overhead progress bars
+    // ----------------------------------------------------------------------------
+    int water_frame_count = 0;
+    const Texture2D *water_frames = assets_target_frames(TARGET_ANIM_WATER_BALL, &water_frame_count);
+
     if (state && state->targets) {
         for (int i = 0; i < state->target_capacity; i++) {
             const Clickable *t = &state->targets[i];
             if (!t->active) continue;
 
-            // Draw target placeholder circle (can be replaced with SpriteView later)
-            DrawCircle((int)t->x, (int)t->y, t->radius, DARKGREEN);
-            DrawCircleLines((int)t->x, (int)t->y, t->radius, LIME);
+            float diameter = t->radius * 2.0f;
+            Rectangle target_rect = {
+                t->x - t->radius,
+                t->y - t->radius,
+                diameter,
+                diameter
+            };
+
+            float bob_offset = 0.0f;
+            
+            if (water_frames && water_frame_count > 0) {
+                SpriteView orb = sprite_view_create(water_frames[0], target_rect);
+                anim_frames(&orb, water_frames, water_frame_count, 12.0f);
+                anim_bobbing(&orb, 5.0f, 0.65f);
+                bob_offset = orb.offset.y;
+                sprite_view_draw(&orb);
+            } else {
+                DrawCircle((int)t->x, (int)t->y, t->radius, SKYBLUE);
+            }
 
             // Calculate normalized progress ratio [0.0f, 1.0f]
             float ratio = (t->max_progress > 0.0f) ? (t->progress / t->max_progress) : 0.0f;
@@ -131,7 +161,7 @@ void click_draw(const GameState *state) {
             float bar_h = 12.0f;
             Rectangle bar_bounds = {
                 t->x - bar_w * 0.5f,
-                t->y - t->radius - 20.0f,
+                t->y - t->radius - 20.0f + bob_offset,
                 bar_w,
                 bar_h
             };
@@ -139,6 +169,7 @@ void click_draw(const GameState *state) {
             ui_progress_bar_draw(bar_bounds, BAR_TYPE_DEFAULT, ratio, LIME, DARKGRAY);
         }
     }
+    // ----------------------------------------------------------------------------
 
     // Draw top HUD panel
     Rectangle hud_rect = { 0.0f, 0.0f, (float)screen_w, 80.0f };

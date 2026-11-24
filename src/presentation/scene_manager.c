@@ -26,8 +26,11 @@ static void apply_scene_audio(SceneID scene) {
             audio_start_ambient();
             break;
         case SCENE_SHOP:
+            // audio_play_music(MUSIC_CAT_GOOFY);
+            audio_stop_ambient();
+            break;
         case SCENE_UPTREE:
-            audio_play_music(MUSIC_CAT_GOOFY);
+            // audio_play_music(MUSIC_CAT_GOOFY);
             audio_stop_ambient();
             break;
         default:

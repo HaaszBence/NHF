@@ -11,9 +11,14 @@ Last Updated: 2026-11-22
 #include "core/config.h"
 #include <stdlib.h>
 
+// Target Animation Frame Counts
+// -------------------------------------------------
+#define WATER_BALL_FRAME_COUNT 12
+#define FIREBALL_FRAME_COUNT   8
+
 // Asset Path Tables
 // -------------------------------------------------
-static const char *texture_paths[TEX_COUNT] = {
+static const char *texture_paths[TEX_BG_COUNT] = {
     [TEX_BG_SKY] = ASSETS_PATH "images/bg/layers/sky.png",
     [TEX_BG_CLOUDS_CLOSE] = ASSETS_PATH "images/bg/layers/clouds_close.png",
     [TEX_BG_CLOUDS_FAR] = ASSETS_PATH "images/bg/layers/clouds_far.png",
@@ -39,7 +44,10 @@ static const char *music_dirs[MUSIC_CAT_COUNT] = {
 
 // Internal Storage
 // -------------------------------------------------
-static Texture2D textures[TEX_COUNT];
+static Texture2D textures[TEX_BG_COUNT];
+static Texture2D water_ball_frames[WATER_BALL_FRAME_COUNT];
+static Texture2D fireball_frames[FIREBALL_FRAME_COUNT];
+
 static Font fonts[FONT_COUNT];
 static Sound sfx[SFX_COUNT];
 
@@ -49,9 +57,21 @@ static int music_counts[MUSIC_CAT_COUNT];
 // Public Functions
 // -------------------------------------------------
 bool assets_load(void) {
-    for (int i = 0; i < TEX_COUNT; i++) {
+    for (int i = 0; i < TEX_BG_COUNT; i++) {
         textures[i] = LoadTexture(texture_paths[i]);
         if (textures[i].id == 0) return false;
+    }
+
+    for (int i = 0; i < WATER_BALL_FRAME_COUNT; i++) {
+        const char *path = TextFormat(ASSETS_PATH "images/targets/water_ball/frame%02d.png", i + 1);
+        water_ball_frames[i] = LoadTexture(path);
+        if (water_ball_frames[i].id == 0) return false;
+    }
+
+    for (int i = 0; i < FIREBALL_FRAME_COUNT; i++) {
+        const char *path = TextFormat(ASSETS_PATH "images/targets/fireball/frame%02d.png", i + 1);
+        fireball_frames[i] = LoadTexture(path);
+        if (fireball_frames[i].id == 0) return false;
     }
 
     for (int i = 0; i < FONT_COUNT; i++) {
@@ -80,8 +100,12 @@ bool assets_load(void) {
 }
 
 void assets_unload(void) {
-    for (int i = 0; i < TEX_COUNT; i++) UnloadTexture(textures[i]);
+    for (int i = 0; i < TEX_BG_COUNT; i++) UnloadTexture(textures[i]);
+    for (int i = 0; i < WATER_BALL_FRAME_COUNT; i++) UnloadTexture(water_ball_frames[i]);
+    for (int i = 0; i < FIREBALL_FRAME_COUNT; i++) UnloadTexture(fireball_frames[i]);
+
     for (int i = 0; i < FONT_COUNT; i++) UnloadFont(fonts[i]);
+
     for (int i = 0; i < SFX_COUNT; i++) {
         if (sfx[i].frameCount > 0) UnloadSound(sfx[i]);
     }
@@ -111,4 +135,18 @@ Sound assets_sfx(SfxId id) {
 Music *assets_music_list(MusicCategory cat, int *out_count) {
     if (out_count) *out_count = music_counts[cat];
     return music_tracks[cat];
+}
+
+const Texture2D *assets_target_frames(TargetAnimId id, int *out_count) {
+    switch (id) {
+        case TARGET_ANIM_WATER_BALL:
+            if (out_count) *out_count = WATER_BALL_FRAME_COUNT;
+            return water_ball_frames;
+        case TARGET_ANIM_FIREBALL:
+            if (out_count) *out_count = FIREBALL_FRAME_COUNT;
+            return fireball_frames;
+        default:
+            if (out_count) *out_count = 0;
+            return NULL;
+    }
 }

@@ -1,6 +1,7 @@
-#include "presentation/scenes/menu.h" // Own header with declarations and types
+#include "presentation/scenes/menu.h"
 #include "presentation/render.h" // Needed for SpriteView and sprite_view_draw
 #include "presentation/ui.h" // Needed for Button struct, ui_button_update, and ui_button_draw
+#include "presentation/anim.h" // Needed for anim_drift
 #include "core/assets.h" // Needed for assets_tex() and TextureId enum values
 #include "raylib.h" // Needed for MeasureText, DrawText, and WHITE
 
@@ -28,8 +29,8 @@ void menu_init(const Config *cfg) {
     TextureId layer_ids[MENU_BG_LAYER_COUNT] = {
         TEX_BG_SKY,
         TEX_BG_CLOUDS_FAR,
-        TEX_BG_CLOUDS_CLOSE,
         TEX_BG_ROCKS,
+        TEX_BG_CLOUDS_CLOSE,
         TEX_BG_GROUND
     };
 
@@ -37,6 +38,8 @@ void menu_init(const Config *cfg) {
     for (int i = 0; i < MENU_BG_LAYER_COUNT; i++) {
         sprite_bg[i] = sprite_view_create(assets_tex(layer_ids[i]), full_screen);
     }
+    sprite_bg[1].wrap_x = true; // TEX_BG_CLOUDS_FAR
+    sprite_bg[3].wrap_x = true; // TEX_BG_CLOUDS_CLOSE
 
     float play_btn_w = 240.0f;
     float play_btn_h = 60.0f;
@@ -92,6 +95,13 @@ SceneID menu_update(const InputState *input) {
 }
 
 void menu_draw(void) {
+
+    // Update parallax cloud offsets for this frame
+    sprite_bg[1].offset = (Vector2){ 0.0f, 0.0f };
+    sprite_bg[3].offset = (Vector2){ 0.0f, 0.0f };
+    anim_drift(&sprite_bg[1], 12.0f, DRIFT_LEFT, true);
+    anim_drift(&sprite_bg[3], 28.0f, DRIFT_LEFT, true);
+
     // Render all background layers back-to-front via render.c
     for (int i = 0; i < MENU_BG_LAYER_COUNT; i++) {
         if (sprite_bg[i].tex.id != 0) {

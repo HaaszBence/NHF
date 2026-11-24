@@ -24,7 +24,7 @@ typedef enum {
     TEX_BG_CLOUDS_FAR,
     TEX_BG_ROCKS,
     TEX_BG_GROUND,
-    TEX_COUNT
+    TEX_BG_COUNT
 } TextureId;
 
 typedef enum {
@@ -46,6 +46,12 @@ typedef enum {
     MUSIC_CAT_COUNT
 } MusicCategory;
 
+typedef enum {
+    TARGET_ANIM_WATER_BALL,
+    TARGET_ANIM_FIREBALL,
+    TARGET_ANIM_COUNT
+} TargetAnimId;
+
 // Function Declarations
 // -------------------------------------------------
 
@@ -63,5 +69,8 @@ Sound assets_sfx(SfxId id);
 
 // Returns a pointer to the loaded Music array for a category and writes its length to out_count.
 Music *assets_music_list(MusicCategory cat, int *out_count);
+
+// Returns a pointer to the frame array for the given target animation and writes the frame count to out_count.
+const Texture2D *assets_target_frames(TargetAnimId id, int *out_count);
 
 #endif // ASSETS_H
